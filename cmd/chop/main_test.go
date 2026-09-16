@@ -11,11 +11,11 @@ func TestMount(t *testing.T) {
 	ts := httptest.NewServer(app.mount())
 	defer ts.Close()
 
-	resp, err := http.Get(ts.URL + "/v1/healthz")
+	resp, err := http.Get(ts.URL + "/api/v1/healthz")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		t.Errorf("TestMount (/v1/healthz): got %d, want 200", resp.StatusCode)
+		t.Errorf("TestMount (/api/v1/healthz): got %d, want 200", resp.StatusCode)
 	}
 }
