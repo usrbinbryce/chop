@@ -29,7 +29,7 @@ func main() {
 	defer conn.Close()
 
 	if err := conn.Ping(ctx); err != nil {
-		slog.Error("failed to ping db", "error", nil)
+		slog.Error("failed to ping db", "error", err)
 	}
 	logger.Info("connected to db successfully")
 
