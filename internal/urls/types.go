@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrShortCodeRequired   = errors.New("short code is required")
 	ErrDestinationRequired = errors.New("destination is required")
+	ErrShortCodeTaken      = errors.New("that short code is taken")
 )
 
 type createURLPayload struct {

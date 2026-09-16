@@ -21,7 +21,6 @@ func NewService(repo *repo.Queries, db *pgxpool.Pool) Service {
 	return &svc{repo: repo, db: db}
 }
 
-// @TODO: reminder to check for existing shortened URLs before inserting into the DB
 func (s *svc) CreateURL(ctx context.Context, urlToCreate createURLPayload) (repo.Url, error) {
 	if err := validateURLPayload(urlToCreate); err != nil {
 		return repo.Url{}, err
@@ -34,6 +33,11 @@ func (s *svc) CreateURL(ctx context.Context, urlToCreate createURLPayload) (repo
 	defer tx.Rollback(ctx)
 
 	qtx := s.repo.WithTx(tx)
+
+	existing, err := qtx.GetURLFromShortCode(ctx, urlToCreate.ShortCode)
+	if err == nil {
+		return existing, ErrShortCodeTaken
+	}
 
 	url, err := qtx.CreateURL(ctx, repo.CreateURLParams{
 		ShortCode:   urlToCreate.ShortCode,

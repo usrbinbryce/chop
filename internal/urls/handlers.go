@@ -30,7 +30,7 @@ func (h *handler) CreateURL(w http.ResponseWriter, r *http.Request) {
 	createdUrl, err := h.service.CreateURL(r.Context(), urlToCreate)
 	if err != nil {
 		switch {
-		case errors.Is(err, ErrShortCodeRequired), errors.Is(err, ErrDestinationRequired):
+		case errors.Is(err, ErrShortCodeRequired), errors.Is(err, ErrDestinationRequired), errors.Is(err, ErrShortCodeTaken):
 			json.WriteError(w, http.StatusBadRequest, err.Error())
 		default:
 			slog.Error("url handler: failed to create URL", "error", err)
