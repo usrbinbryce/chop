@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/usrbinbryce/chop/internal/health"
 )
 
@@ -72,10 +73,12 @@ func (app *application) run(h http.Handler) error {
 
 type application struct {
 	config config
+	db     *pgxpool.Pool
 }
 
 type config struct {
 	addr string
+	db   dbConfig
 }
 
 type dbConfig struct {
