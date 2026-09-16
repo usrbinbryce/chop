@@ -8,7 +8,8 @@ import (
 )
 
 type Service interface {
-	CreateURL(ctx context.Context, urlToCreate createUrlRequest) (repo.Url, error)
+	CreateURL(ctx context.Context, urlToCreate createURLPayload) (repo.Url, error)
+	GetURLFromShortCode(ctx context.Context, shortCode string) (repo.Url, error)
 }
 
 type svc struct {
@@ -21,12 +22,9 @@ func NewService(repo *repo.Queries, db *pgxpool.Pool) Service {
 }
 
 // @TODO: reminder to check for existing shortened URLs before inserting into the DB
-func (s *svc) CreateURL(ctx context.Context, urlToCreate createUrlRequest) (repo.Url, error) {
-	if urlToCreate.ShortCode == "" {
-		return repo.Url{}, ErrShortCodeRequired
-	}
-	if urlToCreate.Destination == "" {
-		return repo.Url{}, ErrDestinationRequired
+func (s *svc) CreateURL(ctx context.Context, urlToCreate createURLPayload) (repo.Url, error) {
+	if err := validateURLPayload(urlToCreate); err != nil {
+		return repo.Url{}, err
 	}
 
 	tx, err := s.db.Begin(ctx)
@@ -50,4 +48,24 @@ func (s *svc) CreateURL(ctx context.Context, urlToCreate createUrlRequest) (repo
 	}
 
 	return url, nil
+}
+
+func (s *svc) GetURLFromShortCode(ctx context.Context, shortCode string) (repo.Url, error) {
+	if shortCode == "" {
+		return repo.Url{}, ErrShortCodeRequired
+	}
+
+	return s.repo.GetURLFromShortCode(ctx, shortCode)
+}
+
+func validateURLPayload(pl createURLPayload) error {
+	if pl.ShortCode == "" {
+		return ErrShortCodeRequired
+	}
+
+	if pl.Destination == "" {
+		return ErrDestinationRequired
+	}
+
+	return nil
 }

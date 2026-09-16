@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/usrbinbryce/chop/internal/json"
 )
 
@@ -19,7 +21,7 @@ func NewHandler(s Service) *handler {
 }
 
 func (h *handler) CreateURL(w http.ResponseWriter, r *http.Request) {
-	var urlToCreate createUrlRequest
+	var urlToCreate createURLPayload
 	if err := json.Read(r, &urlToCreate); err != nil {
 		json.WriteError(w, http.StatusBadRequest, "invalid request")
 		return
@@ -38,4 +40,24 @@ func (h *handler) CreateURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Write(w, http.StatusCreated, createdUrl)
+}
+
+func (h *handler) GetURLMetadata(w http.ResponseWriter, r *http.Request) {
+	shortCode := chi.URLParam(r, "code")
+
+	url, err := h.service.GetURLFromShortCode(r.Context(), shortCode)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrShortCodeRequired):
+			json.WriteError(w, http.StatusBadRequest, err.Error())
+		case errors.Is(err, pgx.ErrNoRows):
+			json.WriteError(w, http.StatusNotFound, "URL not found")
+		default:
+			slog.Error("url handler: failed to get URL", "error", err)
+			json.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
+
+	json.Write(w, http.StatusOK, url)
 }

@@ -32,3 +32,24 @@ func (q *Queries) CreateURL(ctx context.Context, arg CreateURLParams) (Url, erro
 	)
 	return i, err
 }
+
+const getURLFromShortCode = `-- name: GetURLFromShortCode :one
+SELECT
+    id, short_code, destination, created_at
+FROM
+    urls
+WHERE
+    short_code = $1
+`
+
+func (q *Queries) GetURLFromShortCode(ctx context.Context, shortCode string) (Url, error) {
+	row := q.db.QueryRow(ctx, getURLFromShortCode, shortCode)
+	var i Url
+	err := row.Scan(
+		&i.ID,
+		&i.ShortCode,
+		&i.Destination,
+		&i.CreatedAt,
+	)
+	return i, err
+}

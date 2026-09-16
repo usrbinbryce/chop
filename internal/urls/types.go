@@ -7,7 +7,7 @@ var (
 	ErrDestinationRequired = errors.New("destination is required")
 )
 
-type createUrlRequest struct {
+type createURLPayload struct {
 	ShortCode   string `json:"short_code"`
 	Destination string `json:"destination"`
 }

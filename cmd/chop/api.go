@@ -37,6 +37,8 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/urls", func(r chi.Router) {
 			r.Post("/", urlHandler.CreateURL)
+
+			r.Get("/{code}", urlHandler.GetURLMetadata)
 		})
 	})
 
