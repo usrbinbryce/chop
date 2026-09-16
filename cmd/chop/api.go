@@ -12,7 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	repo "github.com/usrbinbryce/chop/internal/adapters/postgresql/sqlc"
 	"github.com/usrbinbryce/chop/internal/health"
+	"github.com/usrbinbryce/chop/internal/urls"
 )
 
 func (app *application) mount() http.Handler {
@@ -24,8 +26,18 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Route("/v1/", func(r chi.Router) {
+	repository := repo.New(app.db)
+
+	// URLS
+	urlService := urls.NewService(repository, app.db)
+	urlHandler := urls.NewHandler(urlService)
+
+	r.Route("/api/v1/", func(r chi.Router) {
 		r.Get("/healthz", health.HealthHandler)
+
+		r.Route("/urls", func(r chi.Router) {
+			r.Post("/", urlHandler.CreateURL)
+		})
 	})
 
 	return r
