@@ -32,6 +32,8 @@ func (app *application) mount() http.Handler {
 	urlService := urls.NewService(repository, app.db)
 	urlHandler := urls.NewHandler(urlService)
 
+	r.Get("/{code}", urlHandler.RedirectToDestination)
+
 	r.Route("/api/v1/", func(r chi.Router) {
 		r.Get("/healthz", health.HealthHandler)
 

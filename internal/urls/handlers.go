@@ -61,3 +61,21 @@ func (h *handler) GetURLMetadata(w http.ResponseWriter, r *http.Request) {
 
 	json.Write(w, http.StatusOK, url)
 }
+
+func (h *handler) RedirectToDestination(w http.ResponseWriter, r *http.Request) {
+	shortCode := chi.URLParam(r, "code")
+
+	url, err := h.service.GetURLFromShortCode(r.Context(), shortCode)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrShortCodeRequired):
+			json.WriteError(w, http.StatusBadRequest, err.Error())
+		case errors.Is(err, pgx.ErrNoRows):
+			json.WriteError(w, http.StatusNotFound, "URL not found")
+		default:
+			json.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+	}
+
+	http.Redirect(w, r, url.Destination, http.StatusMovedPermanently)
+}
