@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	repo "github.com/usrbinbryce/chop/internal/adapters/postgresql/sqlc"
 	"github.com/usrbinbryce/chop/internal/health"
+	mw "github.com/usrbinbryce/chop/internal/middleware"
 	"github.com/usrbinbryce/chop/internal/urls"
 )
 
@@ -36,6 +37,7 @@ func (app *application) mount() http.Handler {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	r.Use(mw.SecurityHeaders)
 
 	repository := repo.New(app.db)
 
@@ -49,8 +51,7 @@ func (app *application) mount() http.Handler {
 		r.Get("/healthz", health.HealthHandler)
 
 		r.Route("/urls", func(r chi.Router) {
-			r.Post("/", urlHandler.CreateURL)
-
+			r.With(mw.MaxBodySize(1<<20)).Post("/", urlHandler.CreateURL)
 			r.Get("/{code}", urlHandler.GetURLMetadata)
 		})
 	})

@@ -22,7 +22,12 @@ func NewHandler(s Service) *handler {
 
 func (h *handler) CreateURL(w http.ResponseWriter, r *http.Request) {
 	var urlToCreate createURLPayload
+
 	if err := json.Read(r, &urlToCreate); err != nil {
+		if errors.Is(err, json.ErrReqTooLarge) {
+			json.WriteError(w, http.StatusBadRequest, err.Error())
+		}
+
 		json.WriteError(w, http.StatusBadRequest, "invalid request")
 		return
 	}
