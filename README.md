@@ -2,6 +2,8 @@
 
 Simplistic URL shortener that helps chop off extra length from your URLs.
 
+Please note this was just a proof of concept hobby project. If you intend to use any of this code in an actual production application, ensure you switch the seond stage of the Docker build to alpine or copy certs manually. Additionally confer with the security middlewares to ensure they fit your needs.
+
 ## Technologies
 
 Chop uses Go alongside a couple of other libraries for better DX:
