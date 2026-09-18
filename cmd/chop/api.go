@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	"github.com/jackc/pgx/v5/pgxpool"
 	repo "github.com/usrbinbryce/chop/internal/adapters/postgresql/sqlc"
 	"github.com/usrbinbryce/chop/internal/health"
@@ -20,11 +22,20 @@ import (
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(httprate.LimitByIP(100, time.Minute)) // TODO: integrate with real IP depending on deployment spec
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP) // TODO: need to change this to get real IP depending on deployment spec (cf, azure, etc)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	repository := repo.New(app.db)
 
