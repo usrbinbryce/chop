@@ -2,6 +2,8 @@ package json
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 )
 
@@ -14,6 +16,19 @@ type errorResponse struct {
 func Read(r *http.Request, data any) error {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(data); err != nil {
+		var maxByteError *http.MaxBytesError
+		if errors.As(err, &maxByteError) {
+			return ErrReqTooLarge
+		}
+
+		if errors.Is(err, io.EOF) {
+			return ErrReqBodyEmpty
+		}
+
+		return errors.New("request body is not valid")
+	}
 
 	return decoder.Decode(data)
 }
